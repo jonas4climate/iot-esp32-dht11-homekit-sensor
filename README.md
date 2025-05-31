@@ -33,7 +33,9 @@ DHT11 Sensor    ESP32 DevKit v1
 - **Temperature Reading**: Celsius measurement with error handling
 - **Humidity Reading**: Relative humidity percentage
 - **Heat Index Calculation**: Computed "feels like" temperature
-- **Serial Output**: Formatted data output every 2 seconds
+- **WiFi Connectivity**: Automatic connection with reconnection handling
+- **HomeKit Integration**: Apple HomeKit compatible temperature and humidity sensors
+- **Serial Output**: Formatted data output every second
 - **Error Detection**: Validates sensor readings and reports failures
 
 ## Getting Started
@@ -43,13 +45,25 @@ DHT11 Sensor    ESP32 DevKit v1
 - USB cable for ESP32 programming and serial monitoring
 
 ### WiFi Configuration
-1. Copy `include/config_wifi_template.h` to `include/config_wifi.h`
-2. Edit `include/config_wifi.h` and update with your WiFi credentials:
+1. Copy `include/config.h.template` to `include/config.h`
+2. Edit `include/config.h` and update with your WiFi credentials:
    ```cpp
    #define WIFI_SSID "your_network_name"
    #define WIFI_PASSWORD "your_password"
    ```
-3. The `config_wifi.h` file is ignored by git to keep your credentials secure
+3. The `config.h` file is ignored by git to keep your credentials secure
+
+### HomeKit Configuration
+HomeKit is enabled by default. To use it:
+1. Make sure `HOMEKIT_ENABLED` is set to `true` in your config.h
+2. Customize the device information in config.h:
+   ```cpp
+   #define HOMEKIT_DEVICE_NAME "ESP32 Climate Sensor"
+   #define HOMEKIT_SETUP_CODE "111-22-333"  // 8-digit code for pairing
+   ```
+3. After uploading, use the Apple Home app to add the accessory using the setup code
+
+To disable HomeKit, set `HOMEKIT_ENABLED` to `false` in config.h
 
 ### Installation
 1. Clone or download this project

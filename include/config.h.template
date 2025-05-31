@@ -5,13 +5,25 @@
 #define WIFI_SSID "YOUR_WIFI_SSID"
 #define WIFI_PASSWORD "YOUR_WIFI_PASSWORD"
 
+// HomeKit Configuration
+#define HOMEKIT_ENABLED true           // Set to false to disable HomeKit
+#define HOMEKIT_DEVICE_NAME "ESP32 Climate Sensor"
+#define HOMEKIT_DEVICE_MANUFACTURER "DIY Electronics"
+#define HOMEKIT_DEVICE_MODEL "ESP32-DHT11"
+#define HOMEKIT_DEVICE_SERIAL "ESP32-001"
+#define HOMEKIT_SETUP_CODE "11122333"
+#define HOMEKIT_SETUP_ID "ES32"
+
 // Sensor Configuration
 #define DHT_PIN 4
 #define DHT_TYPE DHT11
 
 // Timing Configuration
-#define SENSOR_READ_INTERVAL 1000    // milliseconds
-#define WIFI_CHECK_INTERVAL 30000    // milliseconds
+#define SENSOR_READ_INTERVAL 60000    // milliseconds
+#define WIFI_CHECK_INTERVAL 60000    // milliseconds
 #define SERIAL_BAUD_RATE 115200
+
+// Debug Configuration
+#define SERIAL_DEBUG_VERBOSE true     // Set to false for minimal output
 
 #endif
