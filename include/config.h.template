@@ -1,9 +1,9 @@
 #ifndef CONFIG_WIFI_H
 #define CONFIG_WIFI_H
 
-// WiFi Configuration - Copy this file to 'config.h' and update credentials
-#define WIFI_SSID "YOUR_WIFI_SSID"
-#define WIFI_PASSWORD "YOUR_WIFI_PASSWORD"
+// WiFi Configuration
+#define WIFI_SSID "ENTER_WIFI_SSID"
+#define WIFI_PASSWORD "ENTER_PASSWORD"
 
 // HomeKit Configuration
 #define HOMEKIT_ENABLED true           // Set to false to disable HomeKit
@@ -11,12 +11,26 @@
 #define HOMEKIT_DEVICE_MANUFACTURER "DIY Electronics"
 #define HOMEKIT_DEVICE_MODEL "ESP32-DHT11"
 #define HOMEKIT_DEVICE_SERIAL "ESP32-001"
-#define HOMEKIT_SETUP_CODE "11122333"
+#define HOMEKIT_SETUP_CODE "28605200"
+#define HOMEKIT_PASSWORD "homestead"
 #define HOMEKIT_SETUP_ID "ES32"
 
 // Sensor Configuration
+// Sensor types: DHT11, DHT22, SHT41
+#define SENSOR_TYPE_DHT11 1
+#define SENSOR_TYPE_DHT22 2
+#define SENSOR_TYPE_SHT41 3
+
+// Select which sensor to use
+#define SENSOR_TYPE SENSOR_TYPE_DHT11 // <- modify based on sensor used
+
+// DHT sensor pins (for DHT11/DHT22)
 #define DHT_PIN 4
 #define DHT_TYPE DHT11
+
+// I2C pins for SHT41 (adjust if needed)
+#define I2C_SDA_PIN 21
+#define I2C_SCL_PIN 22
 
 // Timing Configuration
 #define SENSOR_READ_INTERVAL 60000    // milliseconds

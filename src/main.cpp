@@ -1,101 +1,19 @@
 #include <Arduino.h>
-#include <DHT.h>
-#include <WiFi.h>
-
+#include <Adafruit_Sensor.h>
 #include "config.h"
+#include "sensor_manager.h"
+#include "homekit_manager.h"
+
+// Climate sensor instance using Unified Sensor interface
+ClimateManager* climateSensor = nullptr;
 
 #if HOMEKIT_ENABLED
-#include "HomeSpan.h"
+HomeKitManager homekit;
 #endif
-
-// DHT11 sensor configuration
-DHT dht(DHT_PIN, DHT_TYPE);
-
-// Variables to store sensor readings
-float temperature = 0.0;
-float humidity = 0.0;
-float heatIndex = 0.0;
 
 // Timing variables
 unsigned long previousMillis = 0;
 const long interval = SENSOR_READ_INTERVAL;
-
-#if HOMEKIT_ENABLED
-// HomeSpan Temperature Sensor Service
-struct TemperatureSensor : Service::TemperatureSensor {
-  SpanCharacteristic *temp;
-
-  TemperatureSensor() : Service::TemperatureSensor() {
-    temp = new Characteristic::CurrentTemperature(20.0);
-    temp->setRange(-40, 100);
-  }
-
-  void updateTemperature(float newTemp) { temp->setVal(newTemp); }
-};
-
-// HomeSpan Humidity Sensor Service
-struct HumiditySensor : Service::HumiditySensor {
-  SpanCharacteristic *humidity;
-
-  HumiditySensor() : Service::HumiditySensor() {
-    humidity = new Characteristic::CurrentRelativeHumidity(50.0);
-    humidity->setRange(0, 100);
-  }
-
-  void updateHumidity(float newHumidity) { humidity->setVal(newHumidity); }
-};
-
-// Global pointers to HomeSpan services
-TemperatureSensor *tempSensor = nullptr;
-HumiditySensor *humSensor = nullptr;
-#endif
-
-// WiFi connection function
-void connectToWiFi() {
-  Serial.println();
-  Serial.print("Connecting to WiFi: ");
-  Serial.println(WIFI_SSID);
-
-  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-
-  int attempts = 0;
-  while (WiFi.status() != WL_CONNECTED && attempts < 20) {
-    delay(500);
-    Serial.print(".");
-    attempts++;
-  }
-
-  if (WiFi.status() == WL_CONNECTED) {
-    Serial.println();
-    Serial.println("✓ WiFi connected!");
-#if SERIAL_DEBUG_VERBOSE
-    Serial.print("IP address: ");
-    Serial.println(WiFi.localIP());
-    Serial.print("Signal strength (RSSI): ");
-    Serial.print(WiFi.RSSI());
-    Serial.println(" dBm");
-#endif
-  } else {
-    Serial.println();
-    Serial.println("✗ WiFi connection failed!");
-#if SERIAL_DEBUG_VERBOSE
-    Serial.println("Continuing without WiFi connection...");
-#endif
-  }
-  Serial.println();
-}
-
-// Function to check WiFi status
-void checkWiFiStatus() {
-  if (WiFi.status() != WL_CONNECTED) {
-#if SERIAL_DEBUG_VERBOSE
-    Serial.println("WiFi connection lost! Attempting to reconnect...");
-#else
-    Serial.println("WiFi reconnecting...");
-#endif
-    connectToWiFi();
-  }
-}
 
 void setup() {
   // Initialize serial communication
@@ -104,60 +22,35 @@ void setup() {
   Serial.flush(); // Clear any garbage in buffer
 
   Serial.println();
-  Serial.println("ESP32 DHT11 Temperature and Humidity Sensor");
-  Serial.println("===========================================");
+  Serial.println("ESP32 Climate Sensor with HomeKit Support");
+  Serial.println("========================================");
 
-  // Initialize DHT sensor
-  dht.begin();
-  Serial.println("DHT11 sensor initialized successfully!");
+  // Create and initialize climate sensor using factory pattern
+  climateSensor = createClimateSensor();
+  if (!climateSensor) {
+    Serial.println("✗ Failed to create climate sensor instance!");
+    return;
+  }
+
+  Serial.print("Initializing ");
+  Serial.print(climateSensor->getSensorName());
+  Serial.println(" sensor...");
+  
+  if (climateSensor->begin()) {
+    Serial.println("✓ Sensor initialized successfully!");
+    climateSensor->printSensorInfo();
+  } else {
+    Serial.println("✗ Sensor initialization failed!");
+    return;
+  }
 
   // Connect to WiFi
-  connectToWiFi();
+  WiFiManager::connect();
 
 #if HOMEKIT_ENABLED
-  if (WiFi.status() == WL_CONNECTED) {
-    Serial.println("✓ Initializing HomeSpan...");
-
-    homeSpan.begin(Category::Sensors, HOMEKIT_DEVICE_NAME);
-
-    // Set WiFi credentials for HomeSpan
-    homeSpan.setWifiCredentials(WIFI_SSID, WIFI_PASSWORD);
-
-    // Enable factory reset - hold down boot button (GPIO0) for 10+ seconds
-    homeSpan.setControlPin(0); // Use GPIO0 (boot button) for factory reset
-
-#if SERIAL_DEBUG_VERBOSE
-    // Optional: Set custom network settings for setup mode
-    homeSpan.setHostNameSuffix("-Climate");
-    homeSpan.setApSSID("ESP32-Climate-Setup");
-    homeSpan.setPairingCode(HOMEKIT_SETUP_CODE);
-    homeSpan.setApPassword(HOMEKIT_PASSWORD);
-    homeSpan.setApTimeout(300); // 5 minutes timeout for setup mode
-#endif
-
-    // Enable Over-The-Air updates
-    homeSpan.enableOTA();
-
-    new SpanAccessory();
-    new Service::AccessoryInformation();
-    new Characteristic::Name(HOMEKIT_DEVICE_NAME);
-    new Characteristic::Manufacturer(HOMEKIT_DEVICE_MANUFACTURER);
-    new Characteristic::SerialNumber(HOMEKIT_DEVICE_SERIAL);
-    new Characteristic::Model(HOMEKIT_DEVICE_MODEL);
-    new Characteristic::FirmwareRevision("1.0.0");
-    new Characteristic::Identify();
-
-    tempSensor = new TemperatureSensor();
-    humSensor = new HumiditySensor();
-
-    Serial.println("✓ HomeSpan ready!");
-#if SERIAL_DEBUG_VERBOSE
-    Serial.print("Setup code: ");
-    Serial.println(HOMEKIT_SETUP_CODE);
-    Serial.println("To factory reset: Hold BOOT button for 10+ seconds");
-#endif
-  } else {
-    Serial.println("✗ HomeSpan disabled - WiFi required");
+  if (WiFiManager::isConnected()) {
+    String deviceName = String(HOMEKIT_DEVICE_NAME) + " (" + climateSensor->getSensorName() + ")";
+    homekit.begin(deviceName);
   }
 #endif
 
@@ -174,13 +67,13 @@ void loop() {
 
 #if HOMEKIT_ENABLED
   // HomeSpan must be polled regularly
-  homeSpan.poll();
+  homekit.poll();
 #endif
 
   // Check WiFi status every 60 seconds
   static unsigned long lastWiFiCheck = 0;
   if (currentMillis - lastWiFiCheck >= WIFI_CHECK_INTERVAL) {
-    checkWiFiStatus();
+    WiFiManager::checkStatus();
     lastWiFiCheck = currentMillis;
   }
 
@@ -194,27 +87,31 @@ void loop() {
       delay(100);
     }
 
-    // Read humidity and temperature
-    humidity = dht.readHumidity();
-    temperature = dht.readTemperature(); // Celsius by default
+    // Read sensor data using Unified Sensor interface
+    sensors_event_t tempEvent, humidityEvent;
+    
+    bool tempValid = climateSensor->getTemperatureEvent(&tempEvent);
+    bool humidityValid = climateSensor->getHumidityEvent(&humidityEvent);
 
     // Check if readings are valid
-    if (isnan(humidity) || isnan(temperature)) {
+    if (!tempValid || !humidityValid || isnan(tempEvent.temperature) || isnan(humidityEvent.relative_humidity)) {
       Serial.println();
-      Serial.println("ERROR: Failed to read from DHT sensor!");
+      Serial.print("ERROR: Failed to read from ");
+      Serial.print(climateSensor->getSensorName());
+      Serial.println(" sensor!");
       Serial.println("Check sensor wiring and connections.");
       return;
     }
 
-    // Calculate heat index (feels like temperature)
-    heatIndex = dht.computeHeatIndex(temperature, humidity,
-                                     false); // false = Celsius
+    // Extract values from sensor events
+    float temperature = tempEvent.temperature;
+    float humidity = humidityEvent.relative_humidity;
+    float heatIndex = ClimateManager::calculateHeatIndex(temperature, humidity);
 
 #if HOMEKIT_ENABLED
     // Update HomeSpan characteristics with new sensor values
-    if (WiFi.status() == WL_CONNECTED && tempSensor && humSensor) {
-      tempSensor->updateTemperature(temperature);
-      humSensor->updateHumidity(humidity);
+    if (WiFiManager::isConnected() && homekit.isInitialized()) {
+      homekit.updateSensorData(temperature, humidity);
     }
 #endif
 
@@ -224,23 +121,25 @@ void loop() {
     Serial.println("=== Sensor Reading ===");
 #endif
     Serial.print("Temp: ");
-    Serial.print(temperature);
+    Serial.print(temperature, 1);
     Serial.print("°C | Humidity: ");
-    Serial.print(humidity);
+    Serial.print(humidity, 1);
     Serial.print("% | Heat Index: ");
-    Serial.print(heatIndex);
+    Serial.print(heatIndex, 1);
     Serial.println("°C");
 
 #if SERIAL_DEBUG_VERBOSE
+    Serial.print("Sensor: ");
+    Serial.println(climateSensor->getSensorName());
+    Serial.print("Timestamp: ");
+    Serial.print(tempEvent.timestamp);
+    Serial.println(" ms");
     Serial.print("WiFi Status: ");
-    Serial.println(WiFi.status() == WL_CONNECTED ? "Connected"
-                                                 : "Disconnected");
+    Serial.println(WiFiManager::isConnected() ? "Connected" : "Disconnected");
 
 #if HOMEKIT_ENABLED
     Serial.print("HomeKit Status: ");
-    Serial.println((WiFi.status() == WL_CONNECTED && tempSensor && humSensor)
-                       ? "Active"
-                       : "Inactive");
+    Serial.println((WiFiManager::isConnected() && homekit.isInitialized()) ? "Active" : "Inactive");
 #endif
 
     Serial.print("Uptime: ");

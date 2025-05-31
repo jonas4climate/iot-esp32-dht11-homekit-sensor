@@ -1,12 +1,5 @@
-# IoT Smart Sensor - ESP32 DHT11 Temperature and Humidity Monitor
+# IoT Smart Sensor - ESP32 Climate Sensor with HomeKit Support
 
-## Hardware Requirements
+A modular climate sensor system for ESP32 that supports multiple sensor types and integrates with Apple HomeKit.
 
-- ESP32 board (any should work)
-- DHT11 temperature and humidity sensor
-- Jumper wires (3 wires needed)
-- Breadboard (optional but recommended)
-
-## Deploy
-
-- Deploy via ProjectIO Build + Upload
+More details (bloated) in the [README-AI.md](README-AI.md).
