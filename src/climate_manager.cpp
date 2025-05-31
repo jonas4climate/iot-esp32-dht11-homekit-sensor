@@ -1,4 +1,4 @@
-#include "sensor_manager.h"
+#include "climate_manager.h"
 
 // Static heat index calculation
 float ClimateManager::calculateHeatIndex(float temperature, float humidity) {

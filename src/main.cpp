@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include <Adafruit_Sensor.h>
 #include "config.h"
-#include "sensor_manager.h"
+#include "climate_manager.h"
 #include "homekit_manager.h"
 
 // Climate sensor instance using Unified Sensor interface

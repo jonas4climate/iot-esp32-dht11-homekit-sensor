@@ -1,5 +1,5 @@
-#ifndef SENSOR_MANAGER_H
-#define SENSOR_MANAGER_H
+#ifndef CLIMATE_MANAGER_H
+#define CLIMATE_MANAGER_H
 
 #include <Arduino.h>
 #include <Adafruit_Sensor.h>

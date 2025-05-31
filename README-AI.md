@@ -59,21 +59,29 @@ Edit `include/config.h` to select your sensor type:
 This project uses a modular architecture for easy sensor extension:
 
 ### Core Components:
-- **`SensorManager`** - Abstract interface for all sensors
+- **`ClimateManager`** - Abstract interface using Adafruit Unified Sensor standard
 - **`WiFiManager`** - Handles WiFi connectivity and reconnection
 - **`HomeKitManager`** - Manages HomeSpan integration and HomeKit services
-- **Factory Pattern** - `createSensor()` instantiates the correct sensor type
+- **Factory Pattern** - `createClimateSensor()` instantiates the correct sensor type
 
 ### Adding New Sensors:
 1. Add sensor type constant in `config.h`
-2. Create new sensor class inheriting from `SensorManager`
-3. Implement required methods: `begin()`, `readSensor()`, `getSensorName()`, `printDebugInfo()`
-4. Add case in factory function `createSensor()`
+2. Create new sensor class inheriting from `ClimateManager`
+3. Implement required methods: `begin()`, `getTemperatureEvent()`, `getHumidityEvent()`, `getTemperatureSensor()`, `getHumiditySensor()`, `getSensorName()`, `printSensorInfo()`
+4. Add case in factory function `createClimateSensor()`
 5. Update library dependencies in `platformio.ini`
 
 ## Shared Components:
 - WiFi connection management and reconnection logic
 - HomeKit service definitions (Temperature + Humidity sensors)
-- Serial output formatting and debug information
-- Main loop structure with timing and error handling
+- Unified Sensor event handling with proper metadata
+- Heat index calculation using sensor events
+- Enhanced debugging with sensor metadata (resolution, min/max values, etc.)
 - Configuration management system
+
+## Unified Sensor Benefits:
+- **Industry Standard**: Uses Adafruit Unified Sensor library standards
+- **Rich Metadata**: Each sensor provides detailed specifications and capabilities  
+- **Event-Based**: Uses `sensors_event_t` with timestamps and proper data types
+- **Extensible**: Easy to add new sensors that follow the same interface
+- **Ecosystem Compatible**: Works with other Adafruit sensor libraries and frameworks
