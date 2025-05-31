@@ -1,0 +1,48 @@
+# Ignore PlatformIO build directories
+.pio/
+.pioenvs/
+.piolibdeps/
+
+# Ignore Visual Studio Code settings
+.vscode/
+
+# Ignore sensitive configuration files
+include/config.h
+
+# Ignore macOS system files
+.DS_Store
+
+# Ignore Windows thumbnail cache files
+Thumbs.db
+
+# Ignore user-specific files
+*.vscode/*
+*.idea/
+*.vscode/settings.json
+
+# Ignore build output files
+build/
+*.elf
+*.hex
+*.bin
+*.map
+*.d
+*.o
+*.a
+*.bak
+
+# Ignore environment files
+env/
+
+# Ignore Python virtual environment
+venv/
+
+# Ignore IDE specific files
+*.swp
+*.swo
+
+# Ignore log files
+*.log
+
+# Ignore any local configuration files
+local.cfg
