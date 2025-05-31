@@ -6,3 +6,7 @@
 - DHT11 temperature and humidity sensor
 - Jumper wires (3 wires needed)
 - Breadboard (optional but recommended)
+
+## Deploy
+
+- Deploy via ProjectIO Build + Upload
