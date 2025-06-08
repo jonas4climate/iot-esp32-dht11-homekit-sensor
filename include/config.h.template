@@ -15,6 +15,16 @@
 #define HOMEKIT_PASSWORD "homestead"
 #define HOMEKIT_SETUP_ID "ES32"
 
+// Blynk Configuration
+#define BLYNK_ENABLED true             // Set to false to disable Blynk
+#define BLYNK_TEMPLATE_ID "TMPL4xxxx"  // Replace with your Blynk Template ID from Blynk Console
+#define BLYNK_TEMPLATE_NAME "ESP32 Climate Monitor"
+#define BLYNK_AUTH_TOKEN "ENTER_YOUR_BLYNK_AUTH_TOKEN_HERE"  // Replace with your Blynk Auth Token
+#define BLYNK_VIRTUAL_PIN_TEMP V1      // Virtual pin for temperature
+#define BLYNK_VIRTUAL_PIN_HUMIDITY V2  // Virtual pin for humidity  
+#define BLYNK_VIRTUAL_PIN_HEAT_INDEX V3 // Virtual pin for heat index
+#define BLYNK_VIRTUAL_PIN_STATUS V4    // Virtual pin for sensor status
+
 // Sensor Configuration
 // Sensor types: DHT11, DHT22, SHT41
 #define SENSOR_TYPE_DHT11 1
